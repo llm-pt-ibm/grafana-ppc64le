@@ -1,8 +1,8 @@
 # grafana-ppc64le
 
-This repository describes the native build of [Grafana](https://github.com/grafana/grafana) for IBM POWER9 (ppc64le). Grafana does not publish official binaries for this architecture. IBM maintains official images of this tool, but the latest versions in the repository are outdated.
+[Grafana](https://grafana.com/) is an open-source platform for data visualization and monitoring, widely used to create interactive dashboards from sources like Prometheus, Elasticsearch, and others.
 
-This repository builds Grafana from source within a multi-stage Docker build, so upgrading to a new Grafana release does not require repeating the manual build process. See [Upgrading to a new version](#upgrading-to-a-new-version) below.
+This repository provides a native build of Grafana for IBM POWER9 (ppc64le), since the official project does not publish binaries for this architecture. IBM maintains official images on Docker Hub, but the latest versions are outdated. This project builds Grafana from source using a multi-stage Docker build, making it easy to upgrade without repeating the manual build process. See [Upgrading to a new version](#upgrading-to-a-new-version) below.
 
 This work is part of the [Multi-Arch](#) project, a collaboration between UFCG, IBM, and Flex Brazil focused on porting, validating, and optimizing applications for ppc64le.
 
