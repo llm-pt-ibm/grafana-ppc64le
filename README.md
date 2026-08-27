@@ -1,15 +1,14 @@
 # grafana-ppc64le
 
+This repository describes the native build of [Grafana](https://github.com/grafana/grafana) for IBM POWER9 (ppc64le). Grafana does not publish official binaries for this architecture. IBM maintains official images of this tool, but the latest versions in the repository are outdated.
 
-Este repositório descreve a compilação nativa do [Grafana](https://github.com/grafana/grafana) para IBM POWER9 (ppc64le). O Grafana não publica binários oficiais para essa arquitetura. A IBM mantém imagens oficiais dessa ferramenta, porém as ultimas versões presentes no repositório estão desatualizadas.
+This repository builds Grafana from source within a multi-stage Docker build, so upgrading to a new Grafana release does not require repeating the manual build process. See [Upgrading to a new version](#upgrading-to-a-new-version) below.
 
-Este repositório compila o Grafana a partir do código-fonte dentro de um build Docker multi-stage, então atualizar para um novo release do Grafana não exige repetir o processo de compilação manual. Veja [Atualizando para uma nova versão](#atualizando-para-uma-nova-versão) abaixo.
+This work is part of the [Multi-Arch](#) project, a collaboration between UFCG, IBM, and Flex Brazil focused on porting, validating, and optimizing applications for ppc64le.
 
-Este trabalho é parte do projeto [Multi-Arq](#), uma colaboração entre UFCG, IBM e Flex Brazil focada em portar, validar e otimizar aplicações para ppc64le.
+## Quick Start
 
-## Início rápido
-
-Baixe a imagem já compilada:
+Download the pre-built image:
 
 ```bash
 docker pull ufcgibm/grafana-ppc64le:13.1.0-ppc64le
@@ -20,17 +19,17 @@ docker run -d \
   ufcgibm/grafana-ppc64le:13.1.0-ppc64le
 ```
 
-O Grafana ficará disponível em `http://localhost:3000`.
+Grafana will be available at `http://localhost:3000`.
 
-## Compilando a partir do código-fonte
+## Building from Source
 
 ```bash
 docker build -t ufcgibm/grafana-ppc64le:13.1.0-ppc64le .
 ```
 
-## Atualizando para uma nova versão
+## Upgrading to a New Version
 
-Quando sair um novo release do Grafana, sobrescreva os build args em vez de repetir os passos manuais do zero:
+When a new Grafana release is available, override the build args instead of repeating the manual steps from scratch:
 
 ```bash
 docker build \
@@ -39,48 +38,47 @@ docker build \
   -t ufcgibm/grafana-ppc64le:0.13.2-ppc64le .
 ```
 
-O `SWC_CORE_VERSION` também pode precisar mudar — veja [Problemas conhecidos](#problemas-conhecidos).
+The `SWC_CORE_VERSION` may also need to change — see [Known Issues](#known-issues).
 
-## Ambiente de build
+## Build Environment
 
-| Componente | Versão |
+| Component | Version |
 |---|---|
-| Imagem base | almalinux:8 |
+| Base image | almalinux:8 |
 | GCC | Toolset 11 (11.2.1) |
 | Go | 1.26.5 |
 | Node.js | 22.22.2 |
 | Yarn | 4.15.0 |
 | Python | 3.11 |
 
-Validado em um servidor IBM Power9 (ppc64le, 16 CPUs) rodando AlmaLinux 8.10.
+Validated on an IBM Power9 server (ppc64le, 16 CPUs) running AlmaLinux 8.10.
 
-## Problemas conhecidos
+## Known Issues
 
-### O `@swc/core` não tem binário nativo para ppc64le na versão que o Grafana fixa
+### `@swc/core` does not have a native binary for ppc64le in the version pinned by Grafana
 
-O build do frontend do Grafana (Node.js + Yarn + Nx + Webpack) depende do `@swc/core`. A versão fixada no `package.json` do Grafana no momento deste build (`1.13.3`) não tem binário nativo para `linux-ppc64le`.
+Grafana's frontend build (Node.js + Yarn + Nx + Webpack) depends on `@swc/core`. The version pinned in Grafana's `package.json` at the time of this build (`1.13.3`) does not have a native binary for `linux-ppc64le`.
 
-Correção: atualizar para uma versão que tenha (`1.15.40` funcionou para o Grafana 13.1.0) e atualizar o lockfile com `yarn install`. O Dockerfile faz isso automaticamente através do build arg `SWC_CORE_VERSION` — consulte os [releases do swc no GitHub](https://github.com/swc-project/swc/releases) caso uma versão futura do Grafana precise de outro valor.
+Fix: update to a version that does (`1.15.40` worked for Grafana 13.1.0) and update the lockfile with `yarn install`. The Dockerfile does this automatically via the `SWC_CORE_VERSION` build arg — check the [swc releases on GitHub](https://github.com/swc-project/swc/releases) if a future Grafana version requires a different value.
 
-### Alguns plugins de datasource embutidos falham ao iniciar (esperado)
+### Some built-in datasource plugins fail to start (expected)
 
-Na inicialização, os logs mostram erros como:
+During startup, logs may show errors like:
 
 ```
 Could not start plugin backend" pluginId=elasticsearch error="fork/exec .../gpx_grafana_elasticsearch_datasource_linux_ppc64le: no such file or directory"
 ```
 
-Isso é esperado e não indica um build quebrado. Plugins como Elasticsearch e Zipkin são distribuídos como binários pré-compilados separados (não fazem parte do `make build`), e o projeto oficial só publica esses binários para arquiteturas como amd64/arm64, não ppc64le. O Grafana registra o erro no log, mas continua funcionando normalmente; a funcionalidade principal (dashboards, datasource do Prometheus, etc.) não é afetada.
+This is expected and does not indicate a broken build. Plugins such as Elasticsearch and Zipkin are distributed as separate pre-compiled binaries (they are not part of `make build`), and the official project only publishes these binaries for architectures like amd64/arm64, not ppc64le. Grafana logs the error but continues to function normally; core functionality (dashboards, Prometheus datasource, etc.) is not affected.
 
+## Compatibility Matrix
 
-## Matriz de compatibilidade
-
-| Versão do Grafana | Status | Notas |
+| Grafana Version | Status | Notes |
 |---|---|---|
-| 13.1.0 | ✅ Validado | `@swc/core` atualizado para 1.15.40. `/api/health` confirmado OK. Plugins embutidos do Elasticsearch/Zipkin falham ao iniciar (esperado, ver Problemas conhecidos). |
+| 13.1.0 | ✅ Validated | `@swc/core` updated to 1.15.40. `/api/health` confirmed OK. Built-in Elasticsearch/Zipkin plugins fail to start (expected, see Known Issues). |
 
 ## Disclaimer
 
-Este trabalho não é um release oficial ou distribuição de software da IBM, e não é desenvolvido ou suportado pela IBM ou pelo Grafana Labs.
+This work is not an official release or software distribution by IBM, and is not developed or supported by IBM or Grafana Labs.
 
-Este trabalho foi desenvolvido pela Universidade Federal de Campina Grande (UFCG), uma universidade pública brasileira, como parte de um projeto de Pesquisa, Desenvolvimento e Inovação conduzido em parceria com a IBM e a Flex Brazil.
+This work was developed by the Universidade Federal de Campina Grande (UFCG), a Brazilian public university, as part of a Research, Development, and Innovation project conducted in partnership with IBM and Flex Brazil.
