@@ -33,9 +33,9 @@ When a new Grafana release is available, override the build args instead of repe
 
 ```bash
 docker build \
-  --build-arg GRAFANA_VERSION=v0.13.2 \
+  --build-arg GRAFANA_VERSION=v13.2.0 \
   --build-arg SWC_CORE_VERSION=1.15.40 \
-  -t ufcgibm/grafana-ppc64le:0.13.2-ppc64le .
+  -t ufcgibm/grafana-ppc64le:13.2.0-ppc64le .
 ```
 
 The `SWC_CORE_VERSION` may also need to change — see [Known Issues](#known-issues).
